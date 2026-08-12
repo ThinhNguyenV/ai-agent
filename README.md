@@ -1,22 +1,27 @@
 # AI Media Agent
 
-He thong FastAPI cho agent tao anh va video theo yeu cau. Mac dinh he thong dung provider `diffusers_local` voi cac model free/self-hosted:
+FastAPI app cho agent tao anh va video theo yeu cau. He thong co UI web tai `/`, API tao job nen, prompt enhancer, va nhieu provider media.
+
+Mac dinh project dung provider self-hosted `diffusers_local`:
 
 - Anh mac dinh khong gated: `stabilityai/stable-diffusion-xl-base-1.0`
 - Video mac dinh: `Wan-AI/Wan2.1-T2V-1.3B-Diffusers`
 - Video thay the: `zai-org/CogVideoX-2b`
 
-`dry_run` van co san de test luong xu ly khong can GPU/model. `openai` van giu lai nhu provider tra phi tuy chon.
+Provider `dry_run` dung de test nhanh khong can GPU/model. Provider `openai` van co san neu muon dung API tra phi.
 
 ## Chuc nang
 
-- Nhan yeu cau tao `image` hoac `video` qua API.
-- Agent chuan hoa prompt tu mo ta cua nguoi dung, style, ti le khung hinh, negative prompt.
-- Job chay nen, co endpoint xem trang thai.
+- Tao `image` hoac `video` qua API `POST /v1/generations`.
+- UI studio co san tai `http://127.0.0.1:8001/`.
+- Prompt enhancer co the refine prompt bang Ollama local hoac template fallback.
+- Job chay nen, co endpoint xem trang thai `GET /v1/jobs/{job_id}`.
 - Provider tach lop: `diffusers_local`, `dry_run`, `openai`.
-- Luu artifact local trong thu muc `artifacts/`.
+- Artifact duoc luu local trong thu muc `artifacts/` va serve qua `/artifacts`.
 
 ## Cai dat nhanh
+
+Yeu cau Python 3.11+.
 
 ```powershell
 python -m venv .venv
@@ -31,9 +36,34 @@ Chay test nhanh khong can GPU:
 pytest
 ```
 
+Neu muon chay thu server khong tao media that, sua `.env`:
+
+```dotenv
+MEDIA_PROVIDER=dry_run
+PROMPT_PROVIDER=template
+```
+
+## Chay server va UI
+
+```powershell
+uvicorn app.main:app --reload --port 8001
+```
+
+Mo UI:
+
+```text
+http://127.0.0.1:8001/
+```
+
+Kiem tra provider/model dang cau hinh:
+
+```powershell
+curl http://127.0.0.1:8001/health
+```
+
 ## Prompt LLM mien phi
 
-He thong dung `PROMPT_PROVIDER=ollama` de refine prompt dau vao bang LLM local, khong goi OpenAI.
+Mac dinh `.env.example` dung `PROMPT_PROVIDER=ollama` de refine prompt bang LLM local, khong goi OpenAI.
 
 Cai Ollama tren may, sau do tai model prompt nhe:
 
@@ -62,7 +92,7 @@ OLLAMA_PROMPT_MODEL=qwen2.5:3b
 Test endpoint refine prompt:
 
 ```powershell
-Invoke-RestMethod -Uri "http://127.0.0.1:8000/v1/prompts/refine" `
+Invoke-RestMethod -Uri "http://127.0.0.1:8001/v1/prompts/refine" `
   -Method Post `
   -Headers @{ "Content-Type" = "application/json" } `
   -Body '{"media_type":"image","prompt":"quang cao ca phe sua da Viet Nam","style":"commercial photography"}'
@@ -70,12 +100,19 @@ Invoke-RestMethod -Uri "http://127.0.0.1:8000/v1/prompts/refine" `
 
 Muon tao anh/video va tu refine prompt truoc khi tao, them `"enhance_prompt": true` vao body `/v1/generations`.
 
-Neu chua cai Ollama, co the dung fallback khong can model:
+Neu chua cai Ollama, dung fallback khong can model:
 
 ```json
 {"provider":"template"}
 ```
-## Cai provider local mien phi
+
+Hoac dat trong `.env`:
+
+```dotenv
+PROMPT_PROVIDER=template
+```
+
+## Provider local mien phi
 
 Cai cac thu vien local-media:
 
@@ -83,14 +120,19 @@ Cai cac thu vien local-media:
 pip install -e ".[local,dev]"
 ```
 
-Neu dung NVIDIA GPU, nen cai ban `torch` co CUDA phu hop driver cua may truoc/sau lenh tren theo huong dan PyTorch. Lan chay dau tien se tai model tu Hugging Face, nen can dung luong dia cung lon va co ket noi mang.
+Neu dung NVIDIA GPU, nen cai ban `torch` co CUDA phu hop driver cua may theo huong dan PyTorch. Lan chay dau tien se tai model tu Hugging Face, nen can ket noi mang va dung luong dia cung lon.
 
-`.env` mac dinh da duoc dat nhu sau:
+Cau hinh mac dinh trong `.env.example`:
 
 ```dotenv
 MEDIA_PROVIDER=diffusers_local
 LOCAL_IMAGE_MODEL=stabilityai/stable-diffusion-xl-base-1.0
 LOCAL_VIDEO_MODEL=Wan-AI/Wan2.1-T2V-1.3B-Diffusers
+LOCAL_IMAGE_STEPS=30
+LOCAL_IMAGE_GUIDANCE_SCALE=7.5
+LOCAL_VIDEO_STEPS=20
+LOCAL_VIDEO_FPS=12
+LOCAL_VIDEO_NUM_FRAMES=49
 VIDEO_SIZE=832x480
 ```
 
@@ -117,13 +159,7 @@ LOCAL_VIDEO_FPS=8
 LOCAL_VIDEO_STEPS=30
 ```
 
-Chay thu khong tao media that:
-
-```dotenv
-MEDIA_PROVIDER=dry_run
-```
-
-Provider OpenAI van co the dung khi can:
+Provider OpenAI:
 
 ```dotenv
 MEDIA_PROVIDER=openai
@@ -132,30 +168,22 @@ OPENAI_IMAGE_MODEL=gpt-image-1.5
 OPENAI_VIDEO_MODEL=sora-2
 ```
 
-## Chay server
+## Goi API
 
-```powershell
-uvicorn app.main:app --reload --port 8001
-```
-
-Kiem tra provider/model dang cau hinh:
-
-```powershell
-curl http://127.0.0.1:8000/health
-```
-
-Tao anh bang FLUX:
+Tao anh bang provider mac dinh:
 
 ```powershell
 $body = @{
   media_type = "image"
   prompt = "A premium Vietnamese iced coffee product shot on a marble counter, commercial photography"
+  style = "clean commercial photography"
+  enhance_prompt = $true
   wait = $true
 } | ConvertTo-Json
 
 Invoke-RestMethod `
   -Uri "http://127.0.0.1:8001/v1/generations" `
-  -Method POST `
+  -Method Post `
   -ContentType "application/json" `
   -Body $body
 ```
@@ -164,39 +192,81 @@ Tao video bang Wan/CogVideoX:
 
 ```powershell
 $body = @{
-    media_type = "video"
-    prompt     = "Slow cinematic shot of a modern tutoring center opening in the morning"
-    style      = "warm realistic commercial"
-    seconds    = 10
-    wait       = $true
+  media_type = "video"
+  prompt = "Slow cinematic shot of a modern tutoring center opening in the morning"
+  style = "warm realistic commercial"
+  seconds = 4
+  size = "832x480"
+  wait = $true
 } | ConvertTo-Json
 
-Invoke-RestMethod -Uri "http://127.0.0.1:8001/v1/generations" `
+Invoke-RestMethod `
+  -Uri "http://127.0.0.1:8001/v1/generations" `
   -Method Post `
   -ContentType "application/json" `
   -Body $body
 ```
 
-Xem job:
+Tao job async:
 
 ```powershell
-curl http://127.0.0.1:8000/v1/jobs/<job_id>
+$body = @{
+  media_type = "image"
+  prompt = "A clean product image"
+  provider = "dry_run"
+  wait = $false
+} | ConvertTo-Json
+
+$job = Invoke-RestMethod `
+  -Uri "http://127.0.0.1:8001/v1/generations" `
+  -Method Post `
+  -ContentType "application/json" `
+  -Body $body
+
+Invoke-RestMethod -Uri $job.job_url
 ```
+
+Xem job theo id:
+
+```powershell
+curl http://127.0.0.1:8001/v1/jobs/<job_id>
+```
+
+## Bien moi truong chinh
+
+| Bien | Mac dinh | Ghi chu |
+| --- | --- | --- |
+| `MEDIA_PROVIDER` | `diffusers_local` | `dry_run`, `openai`, hoac `diffusers_local` |
+| `PROMPT_PROVIDER` | `ollama` | `template` hoac `ollama` |
+| `ARTIFACT_DIR` | `artifacts` | Noi luu ket qua local |
+| `LOCAL_IMAGE_MODEL` | `stabilityai/stable-diffusion-xl-base-1.0` | Model anh cho `diffusers_local` |
+| `LOCAL_VIDEO_MODEL` | `Wan-AI/Wan2.1-T2V-1.3B-Diffusers` | Model video cho `diffusers_local` |
+| `LOCAL_DEVICE` | `auto` | Co the dat `cuda`, `mps`, hoac `cpu` |
+| `LOCAL_SEED` | rong | Dat seed neu can ket qua tai lap |
+| `IMAGE_SIZE` | `1024x1024` | Size anh mac dinh neu request khong gui `size` |
+| `VIDEO_SECONDS` | `4` | Thoi luong video mac dinh |
+| `VIDEO_SIZE` | `832x480` | Size video mac dinh |
+| `OPENAI_API_KEY` | rong | Bat buoc neu dung provider `openai` |
 
 ## Cau truc
 
 ```text
 app/
-  main.py                    API FastAPI
+  main.py                    API FastAPI va static web mount
   core/config.py             Cau hinh tu bien moi truong
   models/schemas.py          Request/response/job models
   services/agent.py          Chuan hoa prompt va dieu phoi provider
   services/jobs.py           In-memory job store
+  services/prompt_enhancer.py Refine prompt bang template/Ollama
   storage/artifacts.py       Luu file artifact
   providers/base.py          Interface provider
-  providers/diffusers_local.py Provider local FLUX/Wan/CogVideoX
+  providers/diffusers_local.py Provider local SDXL/FLUX/Wan/CogVideoX
   providers/dry_run.py       Provider gia lap
   providers/openai.py        Provider OpenAI Images/Videos
+web/
+  index.html                 UI studio
+  static/css/styles.css
+  static/js/app.js
 tests/
   test_agent.py
   test_api.py
@@ -208,10 +278,6 @@ tests/
 - `Wan-AI/Wan2.1-T2V-1.3B-Diffusers` phu hop bat dau hon; size khuyen nghi `832x480`.
 - `zai-org/CogVideoX-2b` nen dung prompt tieng Anh dai, mo ta ro hanh dong/camera; size phu hop `720x480`.
 - Video local la tac vu nang. Nen chay async/background thay vi `wait=true` neu video mat nhieu phut.
-- Nen thay in-memory job store bang Redis/Postgres neu trien khai production.
-
-## Video performance notes
-
-- Video local rat nang. De test nhanh, cau hinh mac dinh dung `LOCAL_VIDEO_STEPS=20`, `LOCAL_VIDEO_FPS=12`, va khoang 49 frames cho video 4 giay.
 - Mot so video pipeline yeu cau `num_frames - 1` chia het cho 4. Provider tu dong lam tron ve dang `4k+1` de tranh warning.
 - Neu may khong co GPU NVIDIA/CUDA, tao video co the mat rat lau.
+- Nen thay in-memory job store bang Redis/Postgres neu trien khai production.
