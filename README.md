@@ -114,7 +114,7 @@ Doi video sang CogVideoX-2b:
 LOCAL_VIDEO_MODEL=zai-org/CogVideoX-2b
 VIDEO_SIZE=720x480
 LOCAL_VIDEO_FPS=8
-LOCAL_VIDEO_STEPS=50
+LOCAL_VIDEO_STEPS=30
 ```
 
 Chay thu khong tao media that:
@@ -171,7 +171,7 @@ $body = @{
     wait       = $true
 } | ConvertTo-Json
 
-Invoke-RestMethod -Uri "http://127.0.0.1:8000/v1/generations" `
+Invoke-RestMethod -Uri "http://127.0.0.1:8001/v1/generations" `
   -Method Post `
   -ContentType "application/json" `
   -Body $body
@@ -209,3 +209,9 @@ tests/
 - `zai-org/CogVideoX-2b` nen dung prompt tieng Anh dai, mo ta ro hanh dong/camera; size phu hop `720x480`.
 - Video local la tac vu nang. Nen chay async/background thay vi `wait=true` neu video mat nhieu phut.
 - Nen thay in-memory job store bang Redis/Postgres neu trien khai production.
+
+## Video performance notes
+
+- Video local rat nang. De test nhanh, cau hinh mac dinh dung `LOCAL_VIDEO_STEPS=20`, `LOCAL_VIDEO_FPS=12`, va khoang 49 frames cho video 4 giay.
+- Mot so video pipeline yeu cau `num_frames - 1` chia het cho 4. Provider tu dong lam tron ve dang `4k+1` de tranh warning.
+- Neu may khong co GPU NVIDIA/CUDA, tao video co the mat rat lau.

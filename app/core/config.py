@@ -31,10 +31,10 @@ class Settings(BaseSettings):
     local_seed: int | None = None
     local_image_steps: int = 4
     local_image_guidance_scale: float = 0.0
-    local_video_steps: int = 30
+    local_video_steps: int = 20
     local_video_guidance_scale: float = 5.0
-    local_video_num_frames: int = 81
-    local_video_fps: int = 15
+    local_video_num_frames: int = 49
+    local_video_fps: int = 12
     local_video_negative_prompt: str = (
         "Bright tones, overexposed, static, blurred details, subtitles, worst quality, "
         "low quality, jpeg artifacts, ugly, incomplete, deformed, disfigured, messy background"

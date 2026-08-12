@@ -15,6 +15,36 @@ def test_health_endpoint():
     assert payload["prompt_model"] == "qwen2.5:3b"
 
 
+def test_web_app_homepage():
+    client = TestClient(app)
+    response = client.get("/")
+
+    assert response.status_code == 200
+    assert "AI Media Agent" in response.text
+    assert "/static/js/app.js" in response.text
+    assert "AI_MEDIA_API_BASE_URL" in response.text
+
+
+def test_cors_allows_frontend_origin():
+    client = TestClient(app)
+    response = client.options(
+        "/v1/generations",
+        headers={
+            "Origin": "http://127.0.0.1:8002",
+            "Access-Control-Request-Method": "POST",
+        },
+    )
+
+    assert response.status_code == 200
+    assert response.headers["access-control-allow-origin"] == "http://127.0.0.1:8002"
+
+def test_web_app_static_assets():
+    client = TestClient(app)
+
+    assert client.get("/static/css/styles.css").status_code == 200
+    assert client.get("/static/js/app.js").status_code == 200
+    assert client.get("/static/images/studio-preview.png").status_code == 200
+
 def test_template_prompt_refine_endpoint():
     client = TestClient(app)
     response = client.post(
@@ -69,6 +99,7 @@ def test_waiting_dry_run_generation_with_template_prompt_enhancer():
     assert response.status_code == 202
     assert payload["status"] == "completed"
     assert "Prompt was enhanced before media generation." in payload["job"]["plan"]["notes"]
+
 
 def test_ollama_prompt_refine_unavailable_returns_503():
     client = TestClient(app)

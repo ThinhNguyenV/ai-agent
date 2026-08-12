@@ -1,0 +1,159 @@
+<!doctype html>
+<html lang="vi">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>AI Media Agent Studio</title>
+    <link rel="stylesheet" href="/static/css/styles.css" />
+  </head>
+  <body>
+    <div class="app-shell">
+      <header class="brand-header" aria-label="AI Media Agent">
+        <a class="brand-lockup" href="/" aria-label="AI Media Agent Studio">
+          <span class="brand-mark">AM</span>
+          <span>
+            <strong>AI Media Agent</strong>
+            <span>Creative Studio</span>
+          </span>
+        </a>
+        <nav class="brand-nav" aria-label="Điều hướng sản phẩm">
+          <a href="#composerTitle">Tạo nội dung</a>
+          <a href="#previewTitle">Kết quả</a>
+          <a href="#recentTitle">Lịch sử</a>
+        </nav>
+      </header>
+
+      <section class="topbar">
+        <div>
+          <p class="eyebrow">Studio sản xuất nội dung</p>
+          <h1>Tạo ảnh và video bằng AI</h1>
+        </div>
+        <div class="status-pill" id="healthStatus">Đang kiểm tra</div>
+      </section>
+
+      <main class="workspace">
+        <section class="composer-panel" aria-labelledby="composerTitle">
+          <div class="panel-heading">
+            <div>
+              <p class="eyebrow">Bản mô tả</p>
+              <h2 id="composerTitle">Tạo asset mới</h2>
+            </div>
+            <div class="mode-tabs" role="tablist" aria-label="Loại nội dung">
+              <button class="tab active" type="button" data-media="image">Ảnh</button>
+              <button class="tab" type="button" data-media="video">Video</button>
+            </div>
+          </div>
+
+          <form id="generationForm" class="generation-form">
+            <label class="field span-2">
+              <span>Prompt</span>
+              <textarea
+                id="prompt"
+                name="prompt"
+                rows="6"
+                minlength="3"
+                maxlength="5000"
+                required
+              >Ly cà phê sữa đá Việt Nam cao cấp trên mặt bàn studio sạch, có hơi nước đọng trên ly, phong cách ảnh thương mại</textarea>
+            </label>
+
+            <label class="field">
+              <span>Phong cách</span>
+              <input id="style" name="style" value="ảnh thương mại, chân thực, chỉn chu" maxlength="500" />
+            </label>
+
+            <label class="field">
+              <span>Prompt loại trừ</span>
+              <input id="negativePrompt" name="negative_prompt" placeholder="mờ, lỗi tạo ảnh, chữ méo" maxlength="1000" />
+            </label>
+
+            <label class="field">
+              <span>Tỷ lệ khung hình</span>
+              <select id="aspectRatio" name="aspect_ratio">
+                <option value="1:1">1:1</option>
+                <option value="16:9">16:9</option>
+                <option value="9:16">9:16</option>
+                <option value="4:5">4:5</option>
+              </select>
+            </label>
+
+            <label class="field">
+              <span>Kích thước</span>
+              <select id="size" name="size">
+                <option value="1024x1024" data-kind="image">1024x1024</option>
+                <option value="1280x720" data-kind="video">1280x720</option>
+                <option value="832x480" data-kind="video">832x480</option>
+                <option value="720x480" data-kind="video">720x480</option>
+                <option value="720x1280" data-kind="video">720x1280</option>
+              </select>
+            </label>
+
+            <label class="field video-only is-hidden">
+              <span>Thời lượng</span>
+              <input id="seconds" name="seconds" type="number" min="1" max="30" value="4" aria-label="Thời lượng tính bằng giây" />
+            </label>
+
+            <label class="field">
+              <span>Nhà cung cấp</span>
+              <select id="provider" name="provider">
+                <option value="">Mặc định hệ thống</option>
+                <option value="dry_run">Dry run</option>
+                <option value="diffusers_local">Diffusers local</option>
+                <option value="openai">OpenAI</option>
+              </select>
+            </label>
+
+            <label class="toggle-row span-2">
+              <input id="enhancePrompt" name="enhance_prompt" type="checkbox" checked />
+              <span>Tối ưu prompt trước khi tạo</span>
+            </label>
+
+            <div class="preset-row span-2" aria-label="Mẫu prompt">
+              <button type="button" class="preset" data-preset="product">Chụp sản phẩm</button>
+              <button type="button" class="preset" data-preset="campaign">Ảnh chiến dịch</button>
+              <button type="button" class="preset" data-preset="video">Video giới thiệu</button>
+            </div>
+
+            <div class="action-row span-2">
+              <button class="primary-button" id="submitButton" type="submit">Tạo nội dung</button>
+              <button class="secondary-button" id="refineButton" type="button">Tối ưu prompt</button>
+            </div>
+          </form>
+        </section>
+
+        <section class="preview-panel" aria-labelledby="previewTitle">
+          <div class="preview-hero">
+            <img src="/static/images/studio-preview.png" alt="Giao diện AI Media Agent Studio" />
+          </div>
+          <div class="panel-heading">
+            <div>
+              <p class="eyebrow">Đầu ra</p>
+              <h2 id="previewTitle">Tác vụ hiện tại</h2>
+            </div>
+            <div class="job-badge" id="jobStatus">Chưa chạy</div>
+          </div>
+          <div class="result-frame" id="resultFrame">
+            <div class="empty-state">
+              <strong>Sẵn sàng</strong>
+              <span>Kết quả tạo nội dung và chi tiết tác vụ sẽ xuất hiện tại đây.</span>
+            </div>
+          </div>
+          <dl class="job-meta" id="jobMeta"></dl>
+        </section>
+      </main>
+
+      <aside class="recent-panel" aria-labelledby="recentTitle">
+        <div class="panel-heading">
+          <div>
+            <p class="eyebrow">Phiên làm việc</p>
+            <h2 id="recentTitle">Tác vụ gần đây</h2>
+          </div>
+        </div>
+        <div id="recentJobs" class="recent-list"></div>
+      </aside>
+    </div>
+
+    <script>window.AI_MEDIA_API_BASE_URL = "http://127.0.0.1:8001";</script>
+    <script src="/static/js/app.js" defer></script>
+  </body>
+</html>

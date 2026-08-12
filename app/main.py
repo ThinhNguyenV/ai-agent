@@ -1,4 +1,9 @@
+from pathlib import Path
+
 from fastapi import BackgroundTasks, FastAPI, HTTPException, Request
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import FileResponse
+from fastapi.staticfiles import StaticFiles
 
 from app.core.config import settings
 from app.models.schemas import (
@@ -18,10 +23,29 @@ jobs = JobStore()
 artifacts = ArtifactStore(settings.artifact_dir)
 agent = MediaAgent(settings, jobs, artifacts)
 prompt_enhancer = PromptEnhancer(settings)
+PROJECT_DIR = Path(__file__).resolve().parent.parent
+WEB_DIR = PROJECT_DIR / "web"
 
 
 def create_app() -> FastAPI:
     api = FastAPI(title=settings.app_name, version="0.1.0")
+    api.add_middleware(
+        CORSMiddleware,
+        allow_origins=[
+            "http://127.0.0.1:8002",
+            "http://localhost:8002",
+            "http://127.0.0.1:8001",
+            "http://localhost:8001",
+        ],
+        allow_methods=["*"],
+        allow_headers=["*"],
+    )
+    api.mount("/static", StaticFiles(directory=WEB_DIR / "static"), name="static")
+    api.mount("/artifacts", StaticFiles(directory=settings.artifact_dir), name="artifacts")
+
+    @api.get("/", include_in_schema=False)
+    async def web_app() -> FileResponse:
+        return FileResponse(WEB_DIR / "index.html")
 
     @api.get("/health", response_model=HealthResponse)
     async def health() -> HealthResponse:

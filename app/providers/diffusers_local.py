@@ -125,11 +125,13 @@ class DiffusersLocalProvider(MediaProvider):
             normalized = model_id.lower()
             if media_type == "image":
                 if "flux" in normalized:
-                    from diffusers import FluxPipeline
+                    from diffusers.pipelines.flux.pipeline_flux import FluxPipeline
 
                     return FluxPipeline.from_pretrained(model_id, torch_dtype=dtype)
                 if "stable-diffusion-xl" in normalized or "sdxl" in normalized:
-                    from diffusers import StableDiffusionXLPipeline
+                    from diffusers.pipelines.stable_diffusion_xl.pipeline_stable_diffusion_xl import (
+                        StableDiffusionXLPipeline,
+                    )
 
                     return StableDiffusionXLPipeline.from_pretrained(
                         model_id,
@@ -137,25 +139,28 @@ class DiffusersLocalProvider(MediaProvider):
                         use_safetensors=True,
                     )
                 if "stable-diffusion-v1" in normalized or "stable-diffusion-v1-5" in normalized:
-                    from diffusers import StableDiffusionPipeline
+                    from diffusers.pipelines.stable_diffusion.pipeline_stable_diffusion import (
+                        StableDiffusionPipeline,
+                    )
 
                     return StableDiffusionPipeline.from_pretrained(
                         model_id,
                         torch_dtype=dtype,
                         use_safetensors=True,
                     )
-                from diffusers import DiffusionPipeline
+                from diffusers.pipelines.pipeline_utils import DiffusionPipeline
 
                 return DiffusionPipeline.from_pretrained(model_id, torch_dtype=dtype)
 
             if "wan" in normalized:
-                from diffusers import AutoencoderKLWan, WanPipeline
+                from diffusers.models.autoencoders.autoencoder_kl_wan import AutoencoderKLWan
+                from diffusers.pipelines.wan.pipeline_wan import WanPipeline
 
                 vae = AutoencoderKLWan.from_pretrained(model_id, subfolder="vae", torch_dtype=torch.float32)
                 return WanPipeline.from_pretrained(model_id, vae=vae, torch_dtype=dtype)
 
             if "cogvideox" in normalized:
-                from diffusers import CogVideoXPipeline
+                from diffusers.pipelines.cogvideo.pipeline_cogvideox import CogVideoXPipeline
 
                 return CogVideoXPipeline.from_pretrained(model_id, torch_dtype=dtype)
         except ImportError as exc:
@@ -179,7 +184,7 @@ class DiffusersLocalProvider(MediaProvider):
 
     def _export_to_video(self, frames: Any, output_path: Path, fps: int) -> None:
         try:
-            from diffusers.utils import export_to_video
+            from diffusers.utils.export_utils import export_to_video
         except ImportError as exc:
             raise RuntimeError("diffusers is required to export generated videos") from exc
         export_to_video(frames, str(output_path), fps=fps)
@@ -210,9 +215,15 @@ class DiffusersLocalProvider(MediaProvider):
         return torch.Generator(device=generator_device).manual_seed(self.settings.local_seed)
 
     def _num_frames(self, plan: AgentPlan) -> int:
-        if plan.seconds:
-            return max(1, plan.seconds * self.settings.local_video_fps)
-        return self.settings.local_video_num_frames
+        target = plan.seconds * self.settings.local_video_fps if plan.seconds else self.settings.local_video_num_frames
+        target = max(1, target)
+        if (target - 1) % 4 == 0:
+            return target
+        lower = ((target - 1) // 4) * 4 + 1
+        upper = lower + 4
+        if lower < 1:
+            return upper
+        return lower if target - lower <= upper - target else upper
 
     def _parse_size(self, size: str) -> tuple[int, int]:
         try:
