@@ -61,6 +61,19 @@ def test_web_app_static_assets():
     assert client.get("/static/js/app.js").status_code == 200
     assert client.get("/static/images/studio-preview.png").status_code == 200
 
+
+def test_stylesheet_contains_premium_studio_theme_tokens():
+    client = TestClient(app)
+    response = client.get("/static/css/styles.css")
+
+    assert response.status_code == 200
+    css = response.text
+    assert "--bg: #080b10" in css
+    assert "--stage: #030508" in css
+    assert ".preview-stage" in css
+    assert ".shot-card" in css
+    assert "@media (max-width: 980px)" in css
+
 def test_template_prompt_refine_endpoint():
     client = TestClient(app)
     response = client.post(
