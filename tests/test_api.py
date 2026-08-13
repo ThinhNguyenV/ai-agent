@@ -23,6 +23,10 @@ def test_web_app_homepage():
     assert "AI Media Agent" in response.text
     assert "/static/js/app.js" in response.text
     assert "AI_MEDIA_API_BASE_URL" in response.text
+    assert "studio-shell" in response.text
+    assert "command-strip" in response.text
+    assert "preview-stage" in response.text
+    assert "shot-card" in response.text
 
 
 def test_cors_allows_frontend_origin():

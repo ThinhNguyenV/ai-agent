@@ -7,7 +7,7 @@
     <link rel="stylesheet" href="/static/css/styles.css" />
   </head>
   <body>
-    <div class="app-shell">
+    <div class="app-shell studio-shell">
       <header class="brand-header" aria-label="AI Media Agent">
         <a class="brand-lockup" href="/" aria-label="AI Media Agent Studio">
           <span class="brand-mark">AM</span>
@@ -23,7 +23,7 @@
         </nav>
       </header>
 
-      <section class="topbar">
+      <section class="topbar command-strip">
         <div>
           <p class="eyebrow">Studio sản xuất nội dung</p>
           <h1>Tạo ảnh và video bằng AI</h1>
@@ -109,9 +109,9 @@
             </label>
 
             <div class="preset-row span-2" aria-label="Mẫu prompt">
-              <button type="button" class="preset" data-preset="product">Chụp sản phẩm</button>
-              <button type="button" class="preset" data-preset="campaign">Ảnh chiến dịch</button>
-              <button type="button" class="preset" data-preset="video">Video giới thiệu</button>
+              <button type="button" class="preset shot-card" data-preset="product">Chụp sản phẩm</button>
+              <button type="button" class="preset shot-card" data-preset="campaign">Ảnh chiến dịch</button>
+              <button type="button" class="preset shot-card" data-preset="video">Video giới thiệu</button>
             </div>
 
             <div class="action-row span-2">
@@ -121,7 +121,7 @@
           </form>
         </section>
 
-        <section class="preview-panel" aria-labelledby="previewTitle">
+        <section class="preview-panel preview-stage" aria-labelledby="previewTitle">
           <div class="preview-hero">
             <img src="/static/images/studio-preview.png" alt="Giao diện AI Media Agent Studio" />
           </div>
