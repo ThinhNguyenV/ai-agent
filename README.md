@@ -279,5 +279,5 @@ tests/
 - `zai-org/CogVideoX-2b` nên dùng prompt tiếng Anh dài, mô tả rõ hành động/camera; size phù hợp `720x480`.
 - Video local là tác vụ nặng. Nên chạy async/background thay vì `wait=true` nếu video mất nhiều phút.
 - Một số video pipeline yêu cầu `num_frames - 1` chia hết cho 4. Provider tự động làm tròn về dạng `4k+1` để tránh warning.
-- Nếu máy không có GPU NVIDIA/CUDA, tạo video có thể mất rất lâu.
+- Nếu máy không có GPU NVIDIA/CUDA, tạo video có thể mất rất lâu. Mặc định hệ thống sẽ chặn video local trên CPU và báo lỗi rõ ràng; chỉ đặt `LOCAL_ALLOW_CPU_VIDEO_GENERATION=true` khi bạn thật sự muốn ép chạy CPU.
 - Nên thay in-memory job store bằng Redis/Postgres nếu triển khai production.

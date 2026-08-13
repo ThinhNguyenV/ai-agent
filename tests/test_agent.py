@@ -1,5 +1,8 @@
+import pytest
+
 from app.core.config import Settings
-from app.models.schemas import GenerationRequest
+from app.models.schemas import AgentPlan, GenerationRequest
+from app.providers.diffusers_local import DiffusersLocalProvider
 from app.services.agent import MediaAgent
 from app.services.jobs import JobStore
 from app.storage.artifacts import ArtifactStore
@@ -52,3 +55,37 @@ def test_agent_accepts_diffusers_local_provider(tmp_path):
         "Wan-AI/Wan2.1-T2V-1.3B-Diffusers",
         "zai-org/CogVideoX-2b",
     }
+
+
+def test_diffusers_local_rejects_cpu_video_by_default(tmp_path, monkeypatch):
+    settings = Settings(artifact_dir=tmp_path, media_provider="diffusers_local")
+    provider = DiffusersLocalProvider(settings, ArtifactStore(tmp_path))
+
+    class FakeCuda:
+        @staticmethod
+        def is_available():
+            return False
+
+    class FakeMps:
+        @staticmethod
+        def is_available():
+            return False
+
+    class FakeBackends:
+        mps = FakeMps()
+
+    class FakeTorch:
+        cuda = FakeCuda()
+        backends = FakeBackends()
+
+    monkeypatch.setattr(provider, "_import_torch", lambda: FakeTorch)
+    plan = AgentPlan(
+        media_type="video",
+        provider="diffusers_local",
+        prompt="A short cinematic product reveal",
+        size="832x480",
+        seconds=4,
+    )
+
+    with pytest.raises(RuntimeError, match="LOCAL_ALLOW_CPU_VIDEO_GENERATION=true"):
+        provider._generate_video("job-cpu-video", plan)

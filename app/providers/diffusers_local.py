@@ -65,6 +65,8 @@ class DiffusersLocalProvider(MediaProvider):
     def _generate_video(self, job_id: str, plan: AgentPlan) -> Artifact:
         torch = self._import_torch()
         model_id = self.settings.local_video_model
+        device = self._device(torch)
+        self._ensure_video_device_supported(device)
         pipe, device = self._pipeline("video", model_id, torch)
         width, height = self._parse_size(plan.size)
         num_frames = self._num_frames(plan)
@@ -99,6 +101,16 @@ class DiffusersLocalProvider(MediaProvider):
                 "fps": self.settings.local_video_fps,
                 "steps": self.settings.local_video_steps,
             },
+        )
+
+    def _ensure_video_device_supported(self, device: str) -> None:
+        if device != "cpu" or self.settings.local_allow_cpu_video_generation:
+            return
+        raise RuntimeError(
+            "diffusers_local video generation requires a GPU by default. "
+            "This environment is using CPU-only torch, which can take hours and may make the server unavailable. "
+            "Install a CUDA-enabled torch/GPU, use MEDIA_PROVIDER=dry_run or MEDIA_PROVIDER=openai for video, "
+            "or set LOCAL_ALLOW_CPU_VIDEO_GENERATION=true to force CPU generation anyway."
         )
 
     def _pipeline(self, media_type: str, model_id: str, torch: Any) -> tuple[Any, str]:

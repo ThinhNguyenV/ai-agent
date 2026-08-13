@@ -28,6 +28,7 @@ class Settings(BaseSettings):
     local_device: str = "auto"
     local_torch_dtype: str = "auto"
     local_enable_cpu_offload: bool = True
+    local_allow_cpu_video_generation: bool = False
     local_seed: int | None = None
     local_image_steps: int = 4
     local_image_guidance_scale: float = 0.0
