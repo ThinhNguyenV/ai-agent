@@ -278,13 +278,13 @@ function setJobStatus(status) {
   jobStatus.className = `job-badge ${status}`;
 }
 
-function renderEmpty(title, message) {
-  resultFrame.innerHTML = `<div class="empty-state"><strong>${escapeHtml(title)}</strong><span>${escapeHtml(message)}</span></div>`;
+function renderEmpty(title, message, kicker = "Render queue") {
+  resultFrame.innerHTML = `<div class="empty-state state-panel"><span class="state-kicker">${escapeHtml(kicker)}</span><strong class="state-title">${escapeHtml(title)}</strong><span class="state-copy">${escapeHtml(message)}</span></div>`;
 }
 
 function renderError(message) {
   setJobStatus("failed");
-  resultFrame.innerHTML = `<div class="empty-state"><strong>Lỗi</strong><span>${escapeHtml(message)}</span></div>`;
+  resultFrame.innerHTML = `<div class="empty-state state-panel"><span class="state-kicker">Tín hiệu lỗi</span><strong class="state-title">Lỗi</strong><span class="state-copy">${escapeHtml(message)}</span></div>`;
 }
 
 function artifactSource(artifact) {

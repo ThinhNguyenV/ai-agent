@@ -74,6 +74,18 @@ def test_stylesheet_contains_premium_studio_theme_tokens():
     assert ".shot-card" in css
     assert "@media (max-width: 980px)" in css
 
+
+def test_frontend_runtime_states_use_studio_markup():
+    client = TestClient(app)
+    response = client.get("/static/js/app.js")
+
+    assert response.status_code == 200
+    js = response.text
+    assert "state-panel" in js
+    assert "state-kicker" in js
+    assert "Render queue" in js
+    assert "Tín hiệu lỗi" in js
+
 def test_template_prompt_refine_endpoint():
     client = TestClient(app)
     response = client.post(
