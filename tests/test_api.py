@@ -29,6 +29,18 @@ def test_web_app_homepage():
     assert "shot-card" in response.text
 
 
+
+def test_homepage_exposes_studio_control_room_sections():
+    client = TestClient(app)
+    response = client.get("/")
+
+    assert response.status_code == 200
+    assert "studio-header" in response.text
+    assert "signal-cluster" in response.text
+    assert "control-panel" in response.text
+    assert "stage-frame" in response.text
+    assert "Cinematic Control Room" in response.text
+
 def test_cors_allows_frontend_origin():
     client = TestClient(app)
     response = client.options(

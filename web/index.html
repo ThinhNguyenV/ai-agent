@@ -8,7 +8,7 @@
   </head>
   <body>
     <div class="app-shell studio-shell">
-      <header class="brand-header" aria-label="AI Media Agent">
+      <header class="brand-header studio-header" aria-label="AI Media Agent">
         <a class="brand-lockup" href="/" aria-label="AI Media Agent Studio">
           <span class="brand-mark">AM</span>
           <span>
@@ -24,15 +24,18 @@
       </header>
 
       <section class="topbar command-strip">
-        <div>
-          <p class="eyebrow">Studio sản xuất nội dung</p>
-          <h1>Tạo ảnh và video bằng AI</h1>
+        <div class="command-copy">
+          <p class="eyebrow">Cinematic Control Room</p>
+          <h1>Tạo asset AI như một studio chuyên nghiệp</h1>
+          <p class="lede">Điều phối prompt, provider và preview trong một không gian tối tập trung cho ảnh và video.</p>
         </div>
-        <div class="status-pill" id="healthStatus">Đang kiểm tra</div>
+        <div class="signal-cluster" aria-label="Trạng thái hệ thống">
+          <span class="signal-label">Provider</span>
+          <div class="status-pill" id="healthStatus">Đang kiểm tra</div>
+        </div>
       </section>
-
       <main class="workspace">
-        <section class="composer-panel" aria-labelledby="composerTitle">
+        <section class="composer-panel control-panel" aria-labelledby="composerTitle">
           <div class="panel-heading">
             <div>
               <p class="eyebrow">Bản mô tả</p>
@@ -109,9 +112,18 @@
             </label>
 
             <div class="preset-row span-2" aria-label="Mẫu prompt">
-              <button type="button" class="preset shot-card" data-preset="product">Chụp sản phẩm</button>
-              <button type="button" class="preset shot-card" data-preset="campaign">Ảnh chiến dịch</button>
-              <button type="button" class="preset shot-card" data-preset="video">Video giới thiệu</button>
+              <button type="button" class="preset shot-card" data-preset="product">
+                <strong>Chụp sản phẩm</strong>
+                <span>Ảnh thương mại sắc nét</span>
+              </button>
+              <button type="button" class="preset shot-card" data-preset="campaign">
+                <strong>Ảnh chiến dịch</strong>
+                <span>Key visual cho thương hiệu</span>
+              </button>
+              <button type="button" class="preset shot-card" data-preset="video">
+                <strong>Video giới thiệu</strong>
+                <span>Chuyển động cinematic</span>
+              </button>
             </div>
 
             <div class="action-row span-2">
@@ -132,7 +144,7 @@
             </div>
             <div class="job-badge" id="jobStatus">Chưa chạy</div>
           </div>
-          <div class="result-frame" id="resultFrame">
+          <div class="result-frame stage-frame" id="resultFrame">
             <div class="empty-state">
               <strong>Sẵn sàng</strong>
               <span>Kết quả tạo nội dung và chi tiết tác vụ sẽ xuất hiện tại đây.</span>
