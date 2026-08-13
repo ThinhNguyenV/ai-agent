@@ -1,27 +1,27 @@
 # AI Media Agent
 
-FastAPI app cho agent tao anh va video theo yeu cau. He thong co UI web tai `/`, API tao job nen, prompt enhancer, va nhieu provider media.
+Ứng dụng FastAPI cho agent tạo ảnh và video theo yêu cầu. Hệ thống có giao diện web tại `/`, API tạo tác vụ nền, trình tối ưu prompt, và nhiều provider tạo media.
 
-Mac dinh project dung provider self-hosted `diffusers_local`:
+Mặc định project dùng provider self-hosted `diffusers_local`:
 
-- Anh mac dinh khong gated: `stabilityai/stable-diffusion-xl-base-1.0`
-- Video mac dinh: `Wan-AI/Wan2.1-T2V-1.3B-Diffusers`
-- Video thay the: `zai-org/CogVideoX-2b`
+- Model ảnh mặc định, không gated: `stabilityai/stable-diffusion-xl-base-1.0`
+- Model video mặc định: `Wan-AI/Wan2.1-T2V-1.3B-Diffusers`
+- Model video thay thế: `zai-org/CogVideoX-2b`
 
-Provider `dry_run` dung de test nhanh khong can GPU/model. Provider `openai` van co san neu muon dung API tra phi.
+Provider `dry_run` dùng để test nhanh mà không cần GPU/model. Provider `openai` vẫn có sẵn nếu muốn dùng API trả phí.
 
-## Chuc nang
+## Chức năng
 
-- Tao `image` hoac `video` qua API `POST /v1/generations`.
-- UI studio co san tai `http://127.0.0.1:8001/`.
-- Prompt enhancer co the refine prompt bang Ollama local hoac template fallback.
-- Job chay nen, co endpoint xem trang thai `GET /v1/jobs/{job_id}`.
-- Provider tach lop: `diffusers_local`, `dry_run`, `openai`.
-- Artifact duoc luu local trong thu muc `artifacts/` va serve qua `/artifacts`.
+- Tạo `image` hoặc `video` qua API `POST /v1/generations`.
+- Giao diện studio có sẵn tại `http://127.0.0.1:8001/`.
+- Prompt enhancer có thể tinh chỉnh prompt bằng Ollama local hoặc template fallback.
+- Tác vụ chạy nền, có endpoint xem trạng thái `GET /v1/jobs/{job_id}`.
+- Provider được tách lớp: `diffusers_local`, `dry_run`, `openai`.
+- Artifact được lưu local trong thư mục `artifacts/` và serve qua `/artifacts`.
 
-## Cai dat nhanh
+## Cài đặt nhanh
 
-Yeu cau Python 3.11+.
+Yêu cầu Python 3.11+.
 
 ```powershell
 python -m venv .venv
@@ -30,58 +30,58 @@ pip install -e ".[dev]"
 Copy-Item .env.example .env
 ```
 
-Chay test nhanh khong can GPU:
+Chạy test nhanh không cần GPU:
 
 ```powershell
 pytest
 ```
 
-Neu muon chay thu server khong tao media that, sua `.env`:
+Nếu muốn chạy thử server mà không tạo media thật, sửa `.env`:
 
 ```dotenv
 MEDIA_PROVIDER=dry_run
 PROMPT_PROVIDER=template
 ```
 
-## Chay server va UI
+## Chạy server và UI
 
 ```powershell
 uvicorn app.main:app --reload --port 8001
 ```
 
-Mo UI:
+Mở UI:
 
 ```text
 http://127.0.0.1:8001/
 ```
 
-Kiem tra provider/model dang cau hinh:
+Kiểm tra provider/model đang cấu hình:
 
 ```powershell
 curl http://127.0.0.1:8001/health
 ```
 
-## Prompt LLM mien phi
+## Prompt LLM miễn phí
 
-Mac dinh `.env.example` dung `PROMPT_PROVIDER=ollama` de refine prompt bang LLM local, khong goi OpenAI.
+Mặc định `.env.example` dùng `PROMPT_PROVIDER=ollama` để refine prompt bằng LLM local, không gọi OpenAI.
 
-Cai Ollama tren may, sau do tai model prompt nhe:
+Cài Ollama trên máy, sau đó tải model prompt nhẹ:
 
 ```powershell
 ollama pull qwen2.5:3b
 ```
 
-Cac model prompt free nen dung:
+Các model prompt free nên dùng:
 
 ```powershell
-ollama pull qwen2.5:3b      # mac dinh, can bang chat luong/tai nguyen
-ollama pull qwen2.5:7b      # tot hon neu may khoe hon
-ollama pull llama3.2:1b     # rat nhe
-ollama pull llama3.2        # 3B, nhanh va gon
-ollama pull gemma3          # lua chon thay the tot
+ollama pull qwen2.5:3b      # mặc định, cân bằng chất lượng/tài nguyên
+ollama pull qwen2.5:7b      # tốt hơn nếu máy khỏe hơn
+ollama pull llama3.2:1b     # rất nhẹ
+ollama pull llama3.2        # 3B, nhanh và gọn
+ollama pull gemma3          # lựa chọn thay thế tốt
 ```
 
-Cau hinh trong `.env`:
+Cấu hình trong `.env`:
 
 ```dotenv
 PROMPT_PROVIDER=ollama
@@ -98,31 +98,31 @@ Invoke-RestMethod -Uri "http://127.0.0.1:8001/v1/prompts/refine" `
   -Body '{"media_type":"image","prompt":"quang cao ca phe sua da Viet Nam","style":"commercial photography"}'
 ```
 
-Muon tao anh/video va tu refine prompt truoc khi tao, them `"enhance_prompt": true` vao body `/v1/generations`.
+Muốn tạo ảnh/video và tự refine prompt trước khi tạo, thêm `"enhance_prompt": true` vào body `/v1/generations`.
 
-Neu chua cai Ollama, dung fallback khong can model:
+Nếu chưa cài Ollama, dùng fallback không cần model:
 
 ```json
 {"provider":"template"}
 ```
 
-Hoac dat trong `.env`:
+Hoặc đặt trong `.env`:
 
 ```dotenv
 PROMPT_PROVIDER=template
 ```
 
-## Provider local mien phi
+## Provider local miễn phí
 
-Cai cac thu vien local-media:
+Cài các thư viện local-media:
 
 ```powershell
 pip install -e ".[local,dev]"
 ```
 
-Neu dung NVIDIA GPU, nen cai ban `torch` co CUDA phu hop driver cua may theo huong dan PyTorch. Lan chay dau tien se tai model tu Hugging Face, nen can ket noi mang va dung luong dia cung lon.
+Nếu dùng NVIDIA GPU, nên cài bản `torch` có CUDA phù hợp với driver của máy theo hướng dẫn PyTorch. Lần chạy đầu tiên sẽ tải model từ Hugging Face, nên cần kết nối mạng và dung lượng đĩa lớn.
 
-Cau hinh mac dinh trong `.env.example`:
+Cấu hình mặc định trong `.env.example`:
 
 ```dotenv
 MEDIA_PROVIDER=diffusers_local
@@ -136,13 +136,13 @@ LOCAL_VIDEO_NUM_FRAMES=49
 VIDEO_SIZE=832x480
 ```
 
-Muon dung FLUX.1-schnell thi can dang nhap Hugging Face va accept model truoc:
+Muốn dùng FLUX.1-schnell thì cần đăng nhập Hugging Face và accept model trước:
 
 ```powershell
 huggingface-cli login
 ```
 
-Sau do sua `.env`:
+Sau đó sửa `.env`:
 
 ```dotenv
 LOCAL_IMAGE_MODEL=black-forest-labs/FLUX.1-schnell
@@ -150,7 +150,7 @@ LOCAL_IMAGE_STEPS=4
 LOCAL_IMAGE_GUIDANCE_SCALE=0.0
 ```
 
-Doi video sang CogVideoX-2b:
+Đổi video sang CogVideoX-2b:
 
 ```dotenv
 LOCAL_VIDEO_MODEL=zai-org/CogVideoX-2b
@@ -168,9 +168,9 @@ OPENAI_IMAGE_MODEL=gpt-image-1.5
 OPENAI_VIDEO_MODEL=sora-2
 ```
 
-## Goi API
+## Gọi API
 
-Tao anh bang provider mac dinh:
+Tạo ảnh bằng provider mặc định:
 
 ```powershell
 $body = @{
@@ -188,7 +188,7 @@ Invoke-RestMethod `
   -Body $body
 ```
 
-Tao video bang Wan/CogVideoX:
+Tạo video bằng Wan/CogVideoX:
 
 ```powershell
 $body = @{
@@ -207,7 +207,7 @@ Invoke-RestMethod `
   -Body $body
 ```
 
-Tao job async:
+Tạo tác vụ async:
 
 ```powershell
 $body = @{
@@ -226,42 +226,42 @@ $job = Invoke-RestMethod `
 Invoke-RestMethod -Uri $job.job_url
 ```
 
-Xem job theo id:
+Xem tác vụ theo id:
 
 ```powershell
 curl http://127.0.0.1:8001/v1/jobs/<job_id>
 ```
 
-## Bien moi truong chinh
+## Biến môi trường chính
 
-| Bien | Mac dinh | Ghi chu |
+| Biến | Mặc định | Ghi chú |
 | --- | --- | --- |
-| `MEDIA_PROVIDER` | `diffusers_local` | `dry_run`, `openai`, hoac `diffusers_local` |
-| `PROMPT_PROVIDER` | `ollama` | `template` hoac `ollama` |
-| `ARTIFACT_DIR` | `artifacts` | Noi luu ket qua local |
-| `LOCAL_IMAGE_MODEL` | `stabilityai/stable-diffusion-xl-base-1.0` | Model anh cho `diffusers_local` |
+| `MEDIA_PROVIDER` | `diffusers_local` | `dry_run`, `openai`, hoặc `diffusers_local` |
+| `PROMPT_PROVIDER` | `ollama` | `template` hoặc `ollama` |
+| `ARTIFACT_DIR` | `artifacts` | Nơi lưu kết quả local |
+| `LOCAL_IMAGE_MODEL` | `stabilityai/stable-diffusion-xl-base-1.0` | Model ảnh cho `diffusers_local` |
 | `LOCAL_VIDEO_MODEL` | `Wan-AI/Wan2.1-T2V-1.3B-Diffusers` | Model video cho `diffusers_local` |
-| `LOCAL_DEVICE` | `auto` | Co the dat `cuda`, `mps`, hoac `cpu` |
-| `LOCAL_SEED` | rong | Dat seed neu can ket qua tai lap |
-| `IMAGE_SIZE` | `1024x1024` | Size anh mac dinh neu request khong gui `size` |
-| `VIDEO_SECONDS` | `4` | Thoi luong video mac dinh |
-| `VIDEO_SIZE` | `832x480` | Size video mac dinh |
-| `OPENAI_API_KEY` | rong | Bat buoc neu dung provider `openai` |
+| `LOCAL_DEVICE` | `auto` | Có thể đặt `cuda`, `mps`, hoặc `cpu` |
+| `LOCAL_SEED` | rỗng | Đặt seed nếu cần kết quả tái lập |
+| `IMAGE_SIZE` | `1024x1024` | Size ảnh mặc định nếu request không gửi `size` |
+| `VIDEO_SECONDS` | `4` | Thời lượng video mặc định |
+| `VIDEO_SIZE` | `832x480` | Size video mặc định |
+| `OPENAI_API_KEY` | rỗng | Bắt buộc nếu dùng provider `openai` |
 
-## Cau truc
+## Cấu trúc
 
 ```text
 app/
-  main.py                    API FastAPI va static web mount
-  core/config.py             Cau hinh tu bien moi truong
+  main.py                    API FastAPI và static web mount
+  core/config.py             Cấu hình từ biến môi trường
   models/schemas.py          Request/response/job models
-  services/agent.py          Chuan hoa prompt va dieu phoi provider
+  services/agent.py          Chuẩn hóa prompt và điều phối provider
   services/jobs.py           In-memory job store
-  services/prompt_enhancer.py Refine prompt bang template/Ollama
-  storage/artifacts.py       Luu file artifact
+  services/prompt_enhancer.py Refine prompt bằng template/Ollama
+  storage/artifacts.py       Lưu file artifact
   providers/base.py          Interface provider
   providers/diffusers_local.py Provider local SDXL/FLUX/Wan/CogVideoX
-  providers/dry_run.py       Provider gia lap
+  providers/dry_run.py       Provider giả lập
   providers/openai.py        Provider OpenAI Images/Videos
 web/
   index.html                 UI studio
@@ -272,12 +272,12 @@ tests/
   test_api.py
 ```
 
-## Ghi chu van hanh
+## Ghi chú vận hành
 
-- `diffusers_local` la self-hosted: model free, nhung GPU/dien/cloud van co chi phi neu thue may.
-- `Wan-AI/Wan2.1-T2V-1.3B-Diffusers` phu hop bat dau hon; size khuyen nghi `832x480`.
-- `zai-org/CogVideoX-2b` nen dung prompt tieng Anh dai, mo ta ro hanh dong/camera; size phu hop `720x480`.
-- Video local la tac vu nang. Nen chay async/background thay vi `wait=true` neu video mat nhieu phut.
-- Mot so video pipeline yeu cau `num_frames - 1` chia het cho 4. Provider tu dong lam tron ve dang `4k+1` de tranh warning.
-- Neu may khong co GPU NVIDIA/CUDA, tao video co the mat rat lau.
-- Nen thay in-memory job store bang Redis/Postgres neu trien khai production.
+- `diffusers_local` là self-hosted: model free, nhưng GPU/điện/cloud vẫn có chi phí nếu thuê máy.
+- `Wan-AI/Wan2.1-T2V-1.3B-Diffusers` phù hợp để bắt đầu hơn; size khuyến nghị `832x480`.
+- `zai-org/CogVideoX-2b` nên dùng prompt tiếng Anh dài, mô tả rõ hành động/camera; size phù hợp `720x480`.
+- Video local là tác vụ nặng. Nên chạy async/background thay vì `wait=true` nếu video mất nhiều phút.
+- Một số video pipeline yêu cầu `num_frames - 1` chia hết cho 4. Provider tự động làm tròn về dạng `4k+1` để tránh warning.
+- Nếu máy không có GPU NVIDIA/CUDA, tạo video có thể mất rất lâu.
+- Nên thay in-memory job store bằng Redis/Postgres nếu triển khai production.
